@@ -68,6 +68,7 @@ Main repository for the AIeye camera project.
 - **Final Steps**:
   - Once you’ve added the API keys to the text file, you should be all set! Plug in the battery and power it on with the large button.
   - Once fully booted, press the middle button to open the settings menu, then press the knob to load the Wi-Fi settings. If you find that the camera is taking photos that are 90° or 180° off, go to the second menu in the settings and click rotate 90 degrees.
+  - If you want to export the images from the camera, then take the SD card out and put it in your comptor. Navigate to the photos file on the card and they should all be there.
 
 ## Debugging
 
