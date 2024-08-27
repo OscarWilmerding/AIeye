@@ -1,4 +1,4 @@
-# AIeye
+# aieye
 
 Main repository for the AIeye camera project.
 
