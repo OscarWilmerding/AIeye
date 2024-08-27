@@ -1,6 +1,8 @@
 # aieye
 
 Main repository for the AIeye camera project.
+If you are interested in a kit that gives you all the materials please fill out this interest form and if there are enough people I will make a kit.
+https://forms.gle/SYHFhyDxsT9Xxbqz5
 
 ## 3D Printing
 
