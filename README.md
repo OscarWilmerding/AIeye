@@ -1,8 +1,8 @@
-# aieye
+# AIeye
 
-Main repository for the AIeye camera project.
-If you are interested in a kit that gives you all the materials please fill out this interest form and if there are enough people I will make a kit.
+If you are interested in buying a kit for this fill out this form, if there are enough people I will make and sell kits:
 https://forms.gle/SYHFhyDxsT9Xxbqz5
+Main repository for the AIeye camera project.
 
 ## 3D Printing
 
@@ -70,11 +70,12 @@ https://forms.gle/SYHFhyDxsT9Xxbqz5
 - **Final Steps**:
   - Once you’ve added the API keys to the text file, you should be all set! Plug in the battery and power it on with the large button.
   - Once fully booted, press the middle button to open the settings menu, then press the knob to load the Wi-Fi settings. If you find that the camera is taking photos that are 90° or 180° off, go to the second menu in the settings and click rotate 90 degrees.
-  - If you want to export the images from the camera, then take the SD card out and put it in your comptor. Navigate to the photos file on the card and they should all be there.
 
 ## Debugging
 
 - **Troubleshooting**:
   - If something isn’t working, you'll need to connect to the Pi directly. You can do this by opening the bottom and plugging a mini HDMI cable and keyboard into the Pi. Alternatively, you can connect to the Pi via VNC Viewer. Note that you will not be able to connect to the Pi via VNC Viewer if it isn’t connected to the internet.
+  - once you connect to the pi via vnc viewer you will need to press the escape key to ente the desktop
   - I have also included an image for the camera where the drivers to make it fit to the screen are not included. This may be easier to modify code as the screen will not be small on the VNC viewer.
-    - You should also use this if you want to upgrade the screen.
+  - You should also use this if you want to upgrade the screen.
+  - If you want to run the script without booting on the entire camera, you are going to need to go to the terminal and run the command: sudo -E python3 cam_v3.py
