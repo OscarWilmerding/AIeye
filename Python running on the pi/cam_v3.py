@@ -8,7 +8,8 @@ import base64
 import os
 from openai import OpenAI
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+import textwrap
 from gpiozero import RotaryEncoder, Button
 from signal import pause
 import threading
@@ -23,10 +24,10 @@ ASTICA_API_VISION_PARAMS = 'gpt'
 
 # Define global variables for the indices and lists
 var1_index = 0
-var1_list = ['normal', 'melancholy', 'awe inspiring', 'desolate', 'tranquil', 'foreboding', 'vengeful', 'nostalgic', 'mysterious', 'hyper-realistic', 'chaotic', 'weird', 'unhinged']
+var1_list = ['normal', 'melancholy', 'awe inspiring', 'desolate', 'tranquil', 'evil', 'vengeful', 'nostalgic', 'mysterious', 'hyper-realistic', 'chaotic', 'weird', 'unhinged','robotic', 'overgrown', 'brutalist', 'devious']
 
 #for settings menu
-settings_options = ['Load WiFi Credentials', 'Option 2', 'Option 3', 'Option 4']
+settings_options = ['Load WiFi Credentials, Must Reboot After', 'Update Photo Rotation']  #option 3 and option 4 are settings options names that have a template for a command to be executed in the execute_settings_option function if you want to add them here
 settings_index = 0
 
 encoder_var1 = RotaryEncoder(20,21)
@@ -36,7 +37,7 @@ button_var3 = Button(6, pull_up=True)  #  button for 'playback
 
 bg_color = pygame.Color("#1E2438")
 text_color = pygame.Color("#F1F2ED")
-font_path = "/home/oewil/Desktop/Futura Std Heavy Oblique.otf"
+font_path = "/home/oewil/Documents/Futura Std Heavy Oblique.otf"
 font_size = 24
 
 image_values = 0
@@ -54,6 +55,77 @@ def init_pygame():
 screen = init_pygame()
 
 directory = "/boot/photos"
+
+def create_text_image(paragraph, theme_word, font_path, font_size=52, image_width=800, image_height=600, 
+                      text_color="#FFFFFF", bg_color="#000000", margin=50, save_path="output_image.png"):
+    """Creates an image with a theme label above a centered paragraph of text.
+
+    Args:
+        paragraph (str): The paragraph of text to display.
+        theme_word (str): The single word theme to display above the paragraph.
+        font_path (str): Path to the font file to use.
+        font_size (int, optional): Font size for the text. Defaults to 24.
+        image_width (int, optional): Width of the image in pixels. Defaults to 800.
+        image_height (int, optional): Height of the image in pixels. Defaults to 600.
+        text_color (str, optional): Hex color code for the text color. Defaults to "#FFFFFF".
+        bg_color (str, optional): Hex color code for the background color. Defaults to "#000000".
+        margin (int, optional): Margin between the text and the edges of the image. Defaults to 50.
+        save_path (str, optional): Filepath to save the image. Defaults to "output_image.png".
+    """
+    # Create a blank image with the specified background color
+    image = Image.new('RGB', (image_width, image_height), color=bg_color)
+    draw = ImageDraw.Draw(image)
+
+    # Load the specified font
+    font = ImageFont.truetype(font_path, 48)
+    # Prepare the theme text
+    theme_text = f"A {theme_word} image"
+    theme_width, theme_height = draw.textsize(theme_text, font=font)
+
+    # Split the paragraph into lines of 7 words each
+    words = paragraph.split()
+    lines = [' '.join(words[i:i + 7]) for i in range(0, len(words), 7)]
+
+    # Calculate the height of the paragraph text
+    line_height = font.getsize('Ag')[1]
+    line_spacing = 18  # Spacing between lines
+    num_lines = len(lines)
+    total_paragraph_height = num_lines * line_height + (num_lines - 1) * line_spacing
+
+    # Calculate the total height of the combined text block (theme text + paragraph)
+    total_text_height = theme_height + total_paragraph_height
+
+    # Calculate the starting y position to vertically center the combined text block
+    start_y = (image_height - total_text_height) // 2
+
+    # Draw the theme text at the calculated position
+    theme_x = (image_width - theme_width) // 2
+    draw.text((theme_x, start_y), theme_text, font=font, fill=text_color)
+
+    # Draw each line of the paragraph text on the image, centered horizontally
+    text_y_position = start_y + theme_height
+
+    for line in lines:
+        line_width, _ = draw.textsize(line, font=font)
+        text_x_position = (image_width - line_width) // 2
+        draw.text((text_x_position, text_y_position), line, font=font, fill=text_color)
+        text_y_position += line_height + line_spacing
+
+    # Save the image to the specified path
+    image.save(save_path)
+    print(f"Image saved to {save_path}")
+
+def load_rotation_value():
+    """Loads the rotation value from the text file."""
+    rotation_file = '/home/oewil/rotation_value'
+    try:
+        with open(rotation_file, 'r') as file:
+            rotation_value = int(file.read().strip())
+            return rotation_value
+    except FileNotFoundError:
+        return 0  # Default to 0 if the file doesn't exist
+    except ValueError:
+        return 0  # Default to 0 if there's an error in reading the file
 
 def get_file_by_recency(index):
     # Ensure index is non-negative
@@ -125,17 +197,37 @@ def render_text(screen, custom_font, sentence, text_color, bg_color):
     screen.blit(text_surface, text_rect)
     pygame.display.flip()
 
+def update_rotation_value():
+    """Updates the rotation value by adding 90. Resets to 0 if the value is 360."""
+    rotation_file = '/home/oewil/rotation_value'
+    rotation_value = load_rotation_value()
+    
+    # Add 90 degrees to the current rotation value
+    rotation_value += 90
+    
+    # Reset to 0 if the value is 360
+    if rotation_value >= 360:
+        rotation_value = 0
+    
+    # Save the updated rotation value back to the file
+    with open(rotation_file, 'w') as file:
+        file.write(str(rotation_value))
+    
+    print(f"Rotation value updated to {rotation_value}°")
+    return rotation_value
+
 def take_photo_and_save():
-    """Takes a photo and saves it with a Unix timestamp-based filename."""
+    """Takes a photo and saves it with a Unix timestamp-based filename using rotation value from the text file."""
     photo_timestamp = int(time.time())
     photo_filename = f"img_{photo_timestamp}.jpg"
     photo_directory = '/boot/photos'
     photo_path = os.path.join(photo_directory, photo_filename)
 
+    rotation_value = load_rotation_value()
+
     try:
-        subprocess.run(['raspistill', '-o', photo_path, '-rot', '90'], check=True)
-        # subprocess.run(['raspistill', '-o', photo_path], check=True)
-        print(f"Photo saved to {photo_path}")
+        subprocess.run(['raspistill', '-o', photo_path, '-rot', str(rotation_value)], check=True)
+        print(f"Photo saved to {photo_path} with rotation {rotation_value}°")
         return photo_path, photo_timestamp  # Return both path and timestamp
     except subprocess.CalledProcessError as e:
         print(f"Failed to take photo: {e}")
@@ -210,10 +302,13 @@ def cam_sequence(mood):
     print('\nastica API Output:')
     print(json.dumps(api_result, indent=4))
 
-    display_filler_text(screen, custom_font, "Generating a better image", text_color, bg_color)
+    display_filler_text(screen, custom_font, "Generating a new image", text_color, bg_color)
 
     if api_result.get('status') == 'success':
         raw_description = api_result.get("caption_GPTS", "")
+        
+        create_text_image(paragraph = raw_description, theme_word = mood, font_path=font_path, font_size=34, image_width=1200, image_height=1200, 
+                      text_color = (241,242,237), bg_color = (30,36,56), margin=50, save_path=f"/boot/photos/img_{str(int(time.time()))}.jpg")
         final_description = f"the most important part of this image is that the mood is {mood}, the image should look like this: {raw_description}. REMEMBER that the general mood should be {mood}. Please make sure the mood is {mood} that is the most important part of this image."
         print("final description = " + final_description)
         client = OpenAI(api_key=OPENAI_API_KEY)
@@ -265,12 +360,14 @@ def display_settings_option():
 
 def execute_settings_option():
     option = settings_options[settings_index]
-    if option == 'Load WiFi Credentials':
+    message = 'you should not see this'
+    if option == 'Load WiFi Credentials, Must Reboot After':
         success = load_wifi_credentials()
         message = "WiFi Credentials Loaded Successfully" if success else "Failed to Load WiFi Credentials"
-    elif option == 'Option 2':
-        print("Executing Option 2")
-        message = "Option 2 Executed"
+    elif option == 'Update Photo Rotation':
+        update_rotation_value()
+        print("Executing screen rotation")
+        message = "Photos taken are now rotated 90 degrees clockwise"
     elif option == 'Option 3':
         print("Executing Option 3")
         message = "Option 3 Executed"
@@ -280,6 +377,7 @@ def execute_settings_option():
     
     display_filler_text(screen, custom_font, message, text_color, bg_color)
     time.sleep(2)  # Display the message for 2 seconds
+        
     display_settings_option()  # Return to settings display
 
 def on_button_press(button):
@@ -336,13 +434,19 @@ def load_wifi_credentials(file_path="/boot/WiFi Credentials/WiFi Credentials.txt
             print("Error: SSID and password are required")
             return False
 
-        # Prepare the network configuration
-        network_config = f'''
-network={{
-    ssid="{ssid}"
-    psk="{password}"
-}}
-'''
+        # Generate the hashed passphrase using wpa_passphrase
+        result = subprocess.run(["wpa_passphrase", ssid, password], capture_output=True, text=True)
+
+        # Extract the network block generated by wpa_passphrase
+        network_config = ""
+        inside_network_block = False
+        for line in result.stdout.splitlines():
+            if "network=" in line:
+                inside_network_block = True
+            if inside_network_block:
+                network_config += line + "\n"
+            if line == "}":
+                inside_network_block = False
 
         # Path to wpa_supplicant.conf
         wpa_supplicant_path = "/etc/wpa_supplicant/wpa_supplicant.conf"
