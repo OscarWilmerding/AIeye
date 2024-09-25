@@ -99,7 +99,8 @@ Main repository for the AIeye camera project.
 - **Flashing the SD Card**:
   - Use [win32diskimager](https://sourceforge.net/projects/win32diskimager/) to flash the SD card with the camera's code.
   - Download win32diskimager.
-  - Download the `.img` file from my repository.
+  - Download the `.img` file from my repository. 
+    - https://drive.google.com/drive/folders/1noxVPlFzV9c3eGpXCnVfaX7x1-svAIYr?usp=sharing
   - Within win32diskimager, select your SD card, then select your downloaded image and click write. This process can take 10-30 minutes.
   
 - **Configuring the SD Card**:
