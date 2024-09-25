@@ -136,6 +136,7 @@ Main repository for the AIeye camera project.
 ## Debugging
 
 - **Troubleshooting**:
+  - If you ever need to login (which you shouldent), then the username is oewil and the password is 23309th. no I dont use that username or password anywhere else.
   - If something isn’t working, you'll need to connect to the Pi directly. You can do this by opening the bottom and plugging a mini HDMI cable and keyboard into the Pi. Alternatively, you can connect to the Pi via VNC Viewer. Note that you will not be able to connect to the Pi via VNC Viewer if it isn’t connected to the internet.
   - once you connect to the pi via vnc viewer you will need to press the escape key to ente the desktop
   - I have also included an image for the camera where the drivers to make it fit to the screen are not included. This may be easier to modify code as the screen will not be small on the VNC viewer.
